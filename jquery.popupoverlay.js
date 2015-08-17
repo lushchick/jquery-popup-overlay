@@ -450,7 +450,7 @@
                 $wrapper.removeClass('popup_wrapper_visible');
             }
 
-            if (options.keepfocus) {
+            if (options.keepfocus && !isClick) {
                 // Focus back on saved element
                 setTimeout(function() {
                     if ($($el.data('focusedelementbeforepopup')).is(':visible')) {
@@ -661,6 +661,9 @@
         }
     };
 
+    // flag to determine what interaction (mouse or keyboard) triggered element focus.
+    var isClick = false;
+
     // Hide popup if ESC key is pressed
     $(document).on('keydown', function (event) {
         if(stack.length) {
@@ -670,7 +673,15 @@
             if ($(el).data('popupoptions').escape && event.keyCode == 27) {
                 methods.hide(el);
             }
+
+            // unset isClick flag: last interaction was keyboard
+            isClick = false;
         }
+    });
+
+    // set isClick flag: last interaction was mouse
+    $(document).on('mousedown', function(event) {
+        isClick = true;
     });
 
     // Hide popup on click
@@ -703,7 +714,8 @@
             var elementId = stack[stack.length - 1];
             var el = document.getElementById(elementId);
 
-            if ($(el).data('popupoptions').keepfocus) {
+            // Keep focus, but only if focusin event wasn't triggered by mouse click
+            if ($(el).data('popupoptions').keepfocus && !isClick) {
                 if (!el.contains(event.target)) {
                     event.stopPropagation();
                     el.focus();
